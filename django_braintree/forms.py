@@ -2,7 +2,6 @@ import datetime
 from copy import deepcopy
 
 from django import forms
-from django.forms.util import ErrorList
 from django.forms import widgets
 
 import braintree
