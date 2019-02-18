@@ -106,7 +106,7 @@
     :copyright: (c) 2008 by Armin Ronacher and PEP 273 authors.
     :license: modified BSD license.
 """
-from itertools import izip, imap
+from six.moves import zip as izip, map as imap
 from copy import deepcopy
 
 missing = object()
@@ -298,7 +298,7 @@ class OrderedDict(dict):
             sources.append(kwargs.iteritems())
         for iterable in sources:
             for key, val in iterable:
-                if (self.has_key(key) and recursive 
+                if (key in self and recursive 
                         and isinstance(val, dict) 
                         and isinstance(self[key], dict)):
                     if hasattr(self[key], "recursive_update"):
@@ -343,4 +343,3 @@ class OrderedDict(dict):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
