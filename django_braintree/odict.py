@@ -78,7 +78,7 @@
         has the side-effect that the position of the first key is used because
         the key is actually overwritten:
 
-        >>> odict([('a', 1), ('b', 2), ('a', 3)])
+        >>> OrderedDict([('a', 1), ('b', 2), ('a', 3)])
         odict.odict([('a', 3), ('b', 2)])
 
         This behavor is consistent with existing implementation in Python
@@ -97,15 +97,16 @@
         solution for this situation is creating a list of items, manipulating
         that and converting it back into an odict:
 
-        >>> d = odict([('a', 42), ('b', 23), ('c', 19)])
+        >>> d = OrderedDict([('a', 42), ('b', 23), ('c', 19)])
         >>> l = d.items()
         >>> l.insert(1, ('x', 0))
-        >>> odict(l)
+        >>> OrderedDict(l)
         odict.odict([('a', 42), ('x', 0), ('b', 23), ('c', 19)])
 
     :copyright: (c) 2008 by Armin Ronacher and PEP 273 authors.
     :license: modified BSD license.
 """
+import six
 from six.moves import zip as izip, map as imap
 from copy import deepcopy
 
@@ -126,11 +127,11 @@ class OrderedDict(dict):
     The constructor and `update()` both accept iterables of tuples as well as
     mappings:
 
-    >>> d = odict([('a', 'b'), ('c', 'd')])
+    >>> d = OrderedDict([('a', 'b'), ('c', 'd')])
     >>> d.update({'foo': 'bar'})
     >>> d
     odict.odict([('a', 'b'), ('c', 'd'), ('foo', 'bar')])
-    
+
     Keep in mind that when updating from dict-literals the order is not
     preserved as these dicts are unsorted!
 
@@ -142,7 +143,7 @@ class OrderedDict(dict):
     odict.odict([('a', 'b'), ('c', 'd'), ('foo', 'bar')])
     >>> d.copy()
     odict.odict([('a', 'b'), ('c', 'd'), ('foo', 'bar')])
-    >>> odict(d)
+    >>> OrderedDict(d)
     odict.odict([('a', 'b'), ('c', 'd'), ('foo', 'bar')])
     >>> d['spam'] = []
     >>> d2 = deepcopy(d)
@@ -159,7 +160,7 @@ class OrderedDict(dict):
     ['a', 'c', 'foo', 'spam']
     >>> d.values()
     ['b', 'd', 'bar', []]
-    >>> d.items()
+    >>> list(d.items())
     [('a', 'b'), ('c', 'd'), ('foo', 'bar'), ('spam', [])]
     >>> list(d.iterkeys())
     ['a', 'c', 'foo', 'spam']
@@ -179,7 +180,7 @@ class OrderedDict(dict):
     >>> d.reverse()
     >>> d
     odict.odict([('spam', []), ('foo', 'bar'), ('c', 'd'), ('a', 'b')])
-    
+
     And sort it like a list:
 
     >>> d.sort(key=lambda x: x[0].lower())
@@ -254,7 +255,7 @@ class OrderedDict(dict):
         return self.__class__(self)
 
     def items(self):
-        return zip(self._keys, self.values())
+        return list(zip(self._keys, self.values()))
 
     def iteritems(self):
         return izip(self._keys, self.itervalues())
@@ -285,21 +286,21 @@ class OrderedDict(dict):
     def _update(self, *args, **kwargs):
         recursive = kwargs.get('recursive', False)
         kwargs = kwargs.get('kwargs', {})
-        
+
         sources = []
         if len(args) == 1:
-            if hasattr(args[0], 'iteritems'):
-                sources.append(args[0].iteritems())
+            if hasattr(args[0], 'items'):
+                sources.append(args[0].items())
             else:
                 sources.append(iter(args[0]))
         elif args:
             raise TypeError('expected at most one positional argument')
         if kwargs:
-            sources.append(kwargs.iteritems())
+            sources.append(kwargs.items())
         for iterable in sources:
             for key, val in iterable:
-                if (key in self and recursive 
-                        and isinstance(val, dict) 
+                if (key in self and recursive
+                        and isinstance(val, dict)
                         and isinstance(self[key], dict)):
                     if hasattr(self[key], "recursive_update"):
                         self[key].recursive_update(val)
@@ -310,12 +311,12 @@ class OrderedDict(dict):
 
     def update(self, *args, **kwargs):
         return self._update(kwargs=kwargs, *args)
-    
+
     def recursive_update(self, *args, **kwargs):
         return self._update(kwargs=kwargs, recursive=True, *args)
 
     def values(self):
-        return map(self.get, self._keys)
+        return list(map(self.get, self._keys))
 
     def itervalues(self):
         return imap(self.get, self._keys)
