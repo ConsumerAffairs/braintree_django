@@ -102,7 +102,7 @@ class BraintreeForm(forms.Form):
         # characters not supported in Python variable names.
         labels = self._flatten_dictionary(self.tr_labels)
         helptext = self._flatten_dictionary(self.tr_help)
-        for key in self._flatten_dictionary(self.tr_fields).keys():
+        for key in list(self._flatten_dictionary(self.tr_fields).keys()):
             if key in labels:
                 label = labels[key]
             else:
@@ -152,7 +152,7 @@ class BraintreeForm(forms.Form):
                 
         """
         data = OrderedDict()
-        for key, val in params.items():
+        for key, val in list(params.items()):
             full_key = parent + "[" + key + "]" if parent else key
             if isinstance(val, dict):
                 data.update(self._flatten_dictionary(val, full_key))
@@ -170,7 +170,7 @@ class BraintreeForm(forms.Form):
             templates.
         """
         data = OrderedDict()
-        for key, val in params.items():
+        for key, val in list(params.items()):
             full_key = parent + "[" + key + "]" if parent else key
             if full_key.endswith("[errors]"):
                 full_key = full_key[:-len("[errors]")]
@@ -187,7 +187,7 @@ class BraintreeForm(forms.Form):
         """
             Remove all items from a nested dictionary whose value is None.
         """
-        for key, value in data.items():
+        for key, value in list(data.items()):
             if value is None or isinstance(value, forms.Field):
                 del data[key]
             if isinstance(value, dict):
@@ -226,13 +226,13 @@ class BraintreeForm(forms.Form):
             hide all shipping address information in one quick call if you
             don't care about it.
         """
-        for key in self.fields.keys():
+        for key in list(self.fields.keys()):
             if key.startswith(section):
                 del self.fields[key]
 
     def clean(self):
         if isinstance(self.result, braintree.error_result.ErrorResult) and self.result.transaction:
-            raise forms.ValidationError(u"Error Processing Credit Card: %s" % self.result.transaction.processor_response_text)
+            raise forms.ValidationError("Error Processing Credit Card: %s" % self.result.transaction.processor_response_text)
 
     @property
     def action(self):
